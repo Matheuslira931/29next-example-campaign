@@ -60,7 +60,7 @@ const getCampaign = async () => {
 const getCampaignData = (data) => {
     campaignName = data.name;
     campaignCurrency = data.currency;
-    payEnvKey = data.payment_env_key;
+    payEnvKey = 'DBoXwQshLxKUPYvvKn5O5apJl5Q';
     Spreedly.init(payEnvKey, { "numberEl": "bankcard-number", "cvvEl": "bankcard-cvv" });
 }
 
