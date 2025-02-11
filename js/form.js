@@ -306,3 +306,69 @@ Spreedly.on('paymentMethod', function(token, pmData) {
 });
 
 
+// Sets up event listeners for the "same as billing" checkbox to manage the visibility and validation of billing address fields.
+document.addEventListener('DOMContentLoaded', function() {
+    const sameAsBillingCheckbox = document.getElementById('sameAsBilling');
+    const billingAddressFields = document.getElementById('billingAddressFields');
+
+    sameAsBillingCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            billingAddressFields.style.display = 'none';
+            validate.removeField('#id_billing_address_line1');
+            validate.removeField('#id_billing_address_line4');
+            validate.removeField('#id_billing_state');
+            validate.removeField('#id_billing_postcode');
+            validate.removeField('#id_billing_country');
+        } else {
+            billingAddressFields.style.display = 'block';
+            validate.addField('#id_billing_address_line1', [
+                { rule: 'required', errorMessage: 'Billing address is required' },
+                { rule: 'maxLength', value: 255 }
+            ], { errorsContainer: '.invalid-billing_address_line1' });
+            validate.addField('#id_billing_address_line4', [
+                { rule: 'required', errorMessage: 'Billing city is required' },
+                { rule: 'maxLength', value: 255 }
+            ], { errorsContainer: '.invalid-billing_address_line4' });
+            validate.addField('#id_billing_state', [
+                { rule: 'required', errorMessage: 'Billing state/province is required' }
+            ], { errorsContainer: '.invalid-billing_state' });
+            validate.addField('#id_billing_postcode', [
+                { rule: 'required', errorMessage: 'Billing ZIP/Postcode is required' },
+                { rule: 'maxLength', value: 64 }
+            ], { errorsContainer: '.invalid-billing_postcode' });
+            validate.addField('#id_billing_country', [
+                { rule: 'required', errorMessage: 'Billing country is required' }
+            ], { errorsContainer: '.invalid-billing_country' });
+        }
+    });
+
+    sameAsBillingCheckbox.dispatchEvent(new Event('change'));
+});
+
+// Submits the payment form.
+function submitPaymentForm() {
+    const sameAsBillingCheckbox = document.getElementById('sameAsBilling');
+    const firstName = sameAsBillingCheckbox.checked ? document.getElementById('id_first_name').value : document.getElementById('id_billing_first_name').value;
+    const lastName = sameAsBillingCheckbox.checked ? document.getElementById('id_last_name').value : document.getElementById('id_billing_last_name').value;
+
+
+    cardErrBlock.innerHTML = '';
+    var requiredFields = {};
+    requiredFields["first_name"] = firstName;
+    requiredFields["last_name"] = lastName;
+    requiredFields["month"] = expMonth.value;
+    requiredFields["year"] = expYear.value;
+
+    if (!sameAsBillingCheckbox.checked) {
+        requiredFields["billing_address"] = {
+            address_line1: document.getElementById('id_billing_address_line1').value,
+            address_line4: document.getElementById('id_billing_address_line4').value,
+            state: document.getElementById('id_billing_state').value,
+            postcode: document.getElementById('id_billing_postcode').value,
+            country: document.getElementById('id_billing_country').value
+        };
+    }
+
+    Spreedly.tokenizeCreditCard(requiredFields);
+}
+
